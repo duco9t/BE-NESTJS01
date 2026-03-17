@@ -1,10 +1,20 @@
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import { DatabaseExceptionFilter } from "./database-exception/database-exception.filter";
+import { ValidationPipe } from "@nestjs/common";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors();
+  app.useGlobalFilters(new DatabaseExceptionFilter());
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
 
   const config = new DocumentBuilder()
     .setTitle("TEST API RIPT")

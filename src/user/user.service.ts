@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { Injectable } from "@nestjs/common";
+import { ForbiddenException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { User } from "./entity/user.entity";
 import { CreateUserDto } from "./dto/create-user-dto";
+
+console.log("__dirname =", __dirname);
 
 @Injectable()
 export class UserService {
@@ -20,12 +22,23 @@ export class UserService {
 
   //Find All Users
   async findAll() {
-    return this.userReponsitory.find();
+    const users = await this.userReponsitory.find();
+
+    if (!users || users.length === 0) {
+      throw new ForbiddenException("No users found");
+    }
+    return users;
   }
 
   //Find Id User
   async findOne(id: number) {
-    return this.userReponsitory.findOne({ where: { id } });
+    const user = await this.userReponsitory.findOne({ where: { id } });
+
+    if (!user) {
+      throw new ForbiddenException("User not found");
+    }
+    return user;
+    // return this.userReponsitory.findOne({ where: { id } });
   }
 
   //Update user by id
@@ -36,5 +49,15 @@ export class UserService {
   //Delete user by id
   async delete(id: number) {
     return this.userReponsitory.delete({ id });
+  }
+
+  //Query user by userId
+  async findByUserId(id: number, status: string = "active") {
+    return this.userReponsitory.findOne({ where: { id, status } });
+  }
+
+  //Query user by status
+  async findByStatus(status: string) {
+    return this.userReponsitory.find({ where: { status: status } });
   }
 }
